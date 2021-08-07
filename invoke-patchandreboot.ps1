@@ -1,4 +1,4 @@
-﻿Function Get-PendingReboot {
+Function Get-PendingReboot {
 
     Try {
         ## Setting pending values to false to cut down on the number of else statements
@@ -93,8 +93,12 @@ if (-not(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 }
 
 # Remove items set in the foreach loop below. Nice and Tidy
-if (Get-ScheduledTask -TaskName 'PatchWindows' -ErrorAction SilentlyContinue) {
-    Unregister-ScheduledTask -TaskName 'PatchWindows' -Confirm:$false
+if (Get-ScheduledTask -TaskName PatchWindows -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName PatchWindows -Confirm:$false
+}
+
+if (Get-ScheduledTask -TaskName PatchWindowsReboot -ErrorAction SilentlyContinue) {
+    Unregister-ScheduledTask -TaskName PatchWindowsReboot -Confirm:$false
 }
 
 if (Test-Path -path c:\staging -ErrorAction SilentlyContinue) {
@@ -136,7 +140,17 @@ if ($updates) {
             $D = New-ScheduledTask -Action $A -Trigger $T -Settings $S -Principal $P
             Register-ScheduledTask -TaskName 'PatchWindows' -Force -InputObject $D
 
-            Restart-computer
+            # Restart-computer
+
+            $A = New-ScheduledTaskAction -Execute "C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument "Restart-Computer -Force”
+            # $T = New-ScheduledTaskTrigger -AtLogOn
+            # $T = New-ScheduledTaskTrigger -AtStartup
+            $T = New-ScheduledTaskTrigger -Once -At (get-date).AddMinutes(2)
+            $S = New-ScheduledTaskSettingsSet -Compatibility Win8 -Priority 0
+            # $P = New-ScheduledTaskPrincipal -GroupId "Users" -RunLevel Highest
+            $P = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+            $D = New-ScheduledTask -Action $A -Trigger $T -Settings $S -Principal $P
+            Register-ScheduledTask -TaskName 'PatchWindowsReboot' -Force -InputObject $D
 
         }
 
