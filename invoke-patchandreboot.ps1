@@ -105,6 +105,12 @@ if (Test-Path -path c:\staging -ErrorAction SilentlyContinue) {
     Remove-Item -Path c:\Staging -Recurse -Force -Confirm:$false
 }
 
+$config = Get-NetConnectionProfile
+if ($config.NetworkCategory -eq 'Public') {
+    Set-NetConnectionProfile -InterfaceIndex $config.InterfaceIndex -NetworkCategory Private
+}
+
+Enable-PSRemoting -Confirm:$false
 
 # Start My Updates
 $updates = Get-WUList
