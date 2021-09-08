@@ -112,6 +112,11 @@ if ($config.NetworkCategory -eq 'Public') {
 
 Enable-PSRemoting -Confirm:$false
 
+#Install Chocolatey
+if (-not(Get-Module -FullyQualifiedName chocolateyprofile)) {
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+}
+
 # Start My Updates
 $updates = Get-WUList
 
@@ -162,3 +167,9 @@ if ($updates) {
 
     }
 }
+
+$ErrorActionPreference = "Stop"
+
+Write-Output "Installing a Chef17 client"
+
+. { Invoke-WebRequest -useb https://omnitruck.chef.io/install.ps1 } | Invoke-Expression; install
