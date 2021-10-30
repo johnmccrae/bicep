@@ -74,6 +74,7 @@ Function Get-PendingReboot {
 # Start the actual configuration
 # These 2 items and a new log source need to be installed first.
 
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\\opscode\\chef\\embedded\\bin", "Machine")
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
